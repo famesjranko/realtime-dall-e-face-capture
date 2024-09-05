@@ -1,6 +1,6 @@
 # YOLOv5 Face Detection and Masking with DALL-E Integration
 
-This project demonstrates a custom script for face detection using YOLOv5 with additional functionality to mask detected regions and generate custom images using OpenAI's DALL-E. The script is designed to work efficiently with webcam inputs, especially on Windows systems, by integrating multiple OpenCV backend options for better compatibility.
+This project demonstrates a custom script for face detection using YOLOv5 with additional functionality to mask detected regions and generate custom images using OpenAI's DALL-E.
 
 ## Features
 
