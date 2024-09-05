@@ -9,6 +9,8 @@ This project demonstrates a custom script for face detection using YOLOv5 with a
 - **Masking**: Masks detected faces and processes images for further editing or generating new content using DALL-E.
 - **DALL-E Integration**: Sends masked images to OpenAI's DALL-E API to generate custom images based on user-defined prompts.
 
+![ScreenShot](screenshot.jpg)
+
 ## Installation
 
 1. **Clone the repository**:
