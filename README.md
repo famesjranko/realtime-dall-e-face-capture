@@ -11,6 +11,8 @@ This project demonstrates a custom script for face detection using YOLOv5 with a
 
 ![ScreenShot1](screenshot1.jpg)
 
+![ScreenShot2](screenshot2.jpg)
+
 
 ## Installation
 
