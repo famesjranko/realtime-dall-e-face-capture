@@ -458,7 +458,7 @@ def parse_opt():
     parser = argparse.ArgumentParser()
     # WEIGHTS OPTIONS: 'weights/yolov5n-0.5.pt', 'weights/yolov5n-face.pt', 'weights/yolov5s-face.pt'
     parser.add_argument('--weights', nargs='+', type=str, default='weights/yolov5n-0.5.pt', help='model.pt path(s)')
-    parser.add_argument('--source', type=str, default='1', help='source')  # file/folder, 0 for webcam
+    parser.add_argument('--source', type=str, default='0', help='source')  # file/folder, 0 for webcam
     opt = parser.parse_args()
     
     return opt          
