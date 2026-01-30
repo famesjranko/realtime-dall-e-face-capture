@@ -45,6 +45,7 @@ dall_e_called = False
 detections = None
 prompt = ""
 testing_sleep = .1
+pause_detection = False
 
 
 def load_model(weights, device):
@@ -109,6 +110,7 @@ def detect(
     global detections
     global frame_store
     global img_store
+    global pause_detection
     
     prev_time = time.time()
 
@@ -138,7 +140,10 @@ def detect(
     prev_recommended_sleep_seconds = 0
     relative_percent = 30
     
-    for path, im, im0s, vid_cap in dataset:        
+    for path, im, im0s, vid_cap in dataset:
+        if pause_detection:
+            time.sleep(0.1)
+            continue
         # Calculate frame rate
         curr_time = time.time()
         frame_rate = 1 / (curr_time - prev_time)
@@ -240,9 +245,11 @@ def masked():
     global device
     global dall_e_called
     global prompt
+    global pause_detection
     
     # Set OpenAI API key
-    openai.api_key = ''
+    # Read OpenAI API key from environment variable for security
+    openai.api_key = os.environ.get('OPENAI_API_KEY', '')
     
     # Process detections
     mask_img = None
@@ -256,6 +263,7 @@ def masked():
         time.sleep(testing_sleep)
         
         if detections is not None and len(detections) and dall_e_called:
+            pause_detection = True
             # Create a copy of the detections array
             detections_copy = detections.clone()
         
@@ -424,6 +432,7 @@ def masked():
             
         if dall_e_called:
             dall_e_called = False
+            pause_detection = False
             key = input('press ENTER to start again.')
         
     cv2.destroyAllWindows()
