@@ -57,7 +57,7 @@ def init_pipeline(config: GenerationConfig) -> PipelineBundle:
     face_adapter_loaded = False
     if config.face_adapter:
         try:
-            subfolder = "models" if config.face_adapter.base == "sdxl" else None
+            subfolder = "models"
             pipe.load_ip_adapter(
                 config.face_adapter.repo_id,
                 subfolder=subfolder,

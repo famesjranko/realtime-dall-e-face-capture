@@ -40,10 +40,7 @@ def main() -> None:
         local_files_only=False,
         resume_download=True,
     )
-    adapter_key = args.face_adapter
-    if not adapter_key:
-        adapter_key = "faceid-sdxl" if preset_key.startswith("sdxl") else "faceid-sd15"
-
+    adapter_key = args.face_adapter or ("faceid-sdxl" if preset_key.startswith("sdxl") else "faceid-sd15")
     adapter = FACE_ADAPTERS.get(adapter_key)
     if adapter:
         print(f"Downloading FaceID adapter '{adapter.key}' -> {adapter.repo_id}")
@@ -52,6 +49,7 @@ def main() -> None:
             cache_dir=str(cache_dir) if cache_dir else None,
             local_files_only=False,
             resume_download=True,
+            allow_patterns=[adapter.weight_name, "model_index.json", "*.bin", "*.safetensors"],
         )
     print("Download complete. Subsequent runs can be fully offline.")
 

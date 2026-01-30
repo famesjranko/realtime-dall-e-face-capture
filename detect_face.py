@@ -200,6 +200,19 @@ def detect(model, source: str, device: torch.device, stop_event: Event):
         if stop_event.is_set():
             break
 
+    # For image sources, keep windows open to allow generation thread to display results
+    if not webcam:
+        # For image sources, keep windows responsive until stop_event is set
+        while not stop_event.is_set():
+            if frame_store is not None:
+                cv2.imshow("result", frame_store)
+            if last_generated_image is not None:
+                cv2.imshow("generated", last_generated_image)
+            key = cv2.waitKey(50)
+            if key == ord("q"):
+                stop_event.set()
+                break
+
     cv2.destroyAllWindows()
 
 
@@ -325,8 +338,14 @@ if __name__ == "__main__":
 
     try:
         prompt_loop(stop_event, opt.seed)
+    except KeyboardInterrupt:
+        logging.info("Interrupted, shutting down...")
+        stop_event.set()
     finally:
         stop_event.set()
-        detect_thread.join()
+        detect_thread.join(timeout=2)
         generator_thread.join(timeout=2)
-        cv2.destroyAllWindows()
+        try:
+            cv2.destroyAllWindows()
+        except Exception:
+            pass
