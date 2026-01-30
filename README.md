@@ -1,14 +1,32 @@
-# 'Amusement Park Face Cut-Out' Generator with YOLOv5 and DALL-E Integration
+# 'Amusement Park Face Cut-Out' Generator with YOLOv5 and Local Diffusion
 
-This project combines YOLOv5 for real-time face detection with OpenAI's DALL-E to create custom amusement park-style face cut-out boards. It captures faces, removes the background, and uses text prompts to guide DALL-E in generating themed scenes that incorporate the detected faces, mimicking the effect of placing your face into a cut-out board at an amusement park.
+This project combines YOLOv5 for real-time face detection with a local text-to-image diffusion pipeline to create custom amusement park-style face cut-out boards. It captures faces, removes the background, and uses text prompts to guide image generation, mimicking the effect of placing your face into a cut-out board at an amusement park.
+
+## Local mode (Phase 1)
+- Fully local Stable Diffusion pipeline (SDXL / SDXL-Turbo / SD 1.5) chosen automatically based on GPU VRAM; override with `--model` and `--low-vram`.
+- Text-to-image by default; IP-Adapter FaceID can consume the latest detected face crop to improve likeness (see Phase 2 notes below).
+- Webcam loop stays responsive (15–30 FPS); generations run asynchronously in a worker thread.
+- Expected latency (per prompt, warm): SDXL on ≥12–16 GB GPU ~4–8 s; SDXL-Turbo on 8–12 GB ~2–4 s; SD 1.5 CPU/offload (e.g., P600) 25–40 s at 512px.
+- Offline after one-time model download via `python scripts/download_model.py --model <preset>`.
+ - IP-Adapter FaceID auto-disables on CPU or when adapter weights cannot load; generation falls back to text-only with a warning.
+
+## Phase 2: FaceID (IP-Adapter)
+
+| Device tier                | Suggested preset              | FaceID status | Notes                                   |
+|----------------------------|-------------------------------|---------------|-----------------------------------------|
+| CUDA/ROCm ≥12–16 GB        | SDXL + FaceID Plus v2         | On            | Best likeness; higher VRAM/latency      |
+| CUDA/ROCm 8–12 GB          | SD 1.5 + FaceID Plus v2       | On            | Lower res; lighter VRAM hit             |
+| CUDA/ROCm <8 GB or CPU     | SD 1.5 (text-only fallback)   | Off           | FaceID auto-disables; slow on CPU       |
+
+FaceID uses the most recent detected face crop; if adapters fail to load, the app logs a warning and continues with text-only generation.
 
 ## Features
 
 - **Real-Time Face Detection**: Uses YOLOv5 to detect faces from various video sources, including webcams, RTSP streams, and video files.
 - **Facial Landmark Mapping**: Identifies and marks key features on each detected face.
 - **Real-Time Face Extraction**: Isolates detected faces by making non-face areas transparent, focusing solely on the face.
-- **Image Masking**: Prepares faces for further processing by masking them, enabling integration with DALL-E.
-- **DALL-E Integration**: Incorporates the isolated faces into custom visuals by sending them to OpenAI's DALL-E API, which generates themed scenes based on user-defined prompts.
+- **Image Masking**: Prepares faces for further processing by masking them, enabling integration with the generator.
+- **Local Diffusion Integration**: Incorporates the isolated faces into custom visuals by passing prompts to a locally hosted diffusion model (SDXL / SDXL-Turbo / SD 1.5), eliminating external API calls.
 - **Text Prompt Integration**: Allows users to guide the scene creation by providing prompts, ensuring the detected faces are incorporated into the desired context.
 
 ## Example
@@ -28,21 +46,23 @@ This project combines YOLOv5 for real-time face detection with OpenAI's DALL-E t
    pip install -r requirements.txt
    ```
 
-3. **Set up OpenAI API key**:
-   - Obtain an API key from [OpenAI](https://openai.com/).
-   - Set your API key in the script (`openai.api_key = 'your_openai_api_key'`).
+3. **Download a model once for offline use (optional but recommended)**:
+   ```bash
+   python scripts/download_model.py --model sdxl  # or sdxl-turbo / sd15 / auto
+   ```
 
 ## Usage
 
 1. **Running the Script**:
    ```bash
-   python detect_face.py
+   python detect_face.py --weights <path_to_yolov5_weights> --source <video_source> [--model sdxl|sdxl-turbo|sd15] [--low-vram]
    ```
    - `--weights`: Path to the YOLOv5 weights file.
    - `--source`: Source for video input. Use `0` for the default webcam, or provide a path to a video file or RTSP stream.
-
-2. **Interacting with DALL-E**:
-   - The script allows you to input prompts for DALL-E to generate images based on the detected and masked areas of the video feed.
+   - `--model`: Force a specific preset; default auto-selects based on VRAM/backends.
+   - `--low-vram`: Enable extra memory-saving settings and lower resolution.
+   - `--face-adapter`: `none`, `faceid-sdxl`, or `faceid-sd15` (auto-selects to match the chosen model); IP-Adapter uses the most recent detected face crop.
+   - Prompts are entered interactively; generation runs asynchronously so the webcam stays responsive.
 
 ## Changes Made to `utils/datasets.py`
 
@@ -67,7 +87,6 @@ for backend in [cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_VFW]:
 
 - Ensure that you have the required OpenCV backends installed on your system. If the webcam or stream does not open, try adjusting the backend order in the script.
 - This project assumes a working knowledge of Python, OpenCV, and PyTorch, as well as access to the YOLOv5 model weights.
-- The DALL-E integration requires a valid OpenAI API key and available usage quota.
 
 ## Contributing
 
@@ -76,41 +95,6 @@ Feel free to contribute to this project
 ## Acknowledgements
 
 - [YOLOv5](https://github.com/ultralytics/yolov5) by Ultralytics for the face detection model.
-- [OpenAI](https://openai.com/) for the DALL-E API integration.
-
-
-
-To align your README with the core idea of your project—using DALL-E to replicate amusement park face cut-out boards—here’s an updated version:
-
----
-
-
-
-## Screenshots
-
-*Include relevant screenshots here demonstrating the face cut-out boards generated by the system.*
-
-## Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/famesjranko/realtime-dall-e-face-capture.git
-cd realtime-dall-e-face-capture
-```
-
-Install the required dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Set up your OpenAI API key:
-
-1. Obtain an API key from OpenAI.
-2. Set your API key in the script (`openai.api_key = 'your_openai_api_key'`).
-
-## Usage
 
 ### Running the Script:
 
